@@ -5,7 +5,8 @@ var Schema = mongoose.Schema;
 var crypto = require('crypto');
 
 var UserSchema = new Schema({
-  name: String,
+  first_name: String,
+  last_name: String,
   email: { type: String, lowercase: true },
   role: {
     type: String,
@@ -35,7 +36,8 @@ UserSchema
   .virtual('profile')
   .get(function() {
     return {
-      'name': this.name,
+      'first_name': this.first_name,
+      'last_name' : this.last_name,
       'role': this.role
     };
   });

@@ -24,4 +24,37 @@ angular.module('firstAppApp')
     $scope.$on('$destroy', function () {
       socket.unsyncUpdates('thing');
     });
+
+    $scope.saveImage = function() {
+//        if (input.files && input.files[0]) {
+//            var reader = new FileReader();
+//
+//            reader.onload = function (e) {
+//                $('#blah').attr('src', e.target.result);
+//            }
+//
+//            reader.readAsDataURL(input.files[0]);
+//        }
+    };
+
   });
+
+function readURL(input) {
+    console.log(input)
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            $('#blah').attr('src', e.target.result);
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+$("document").ready(function() {
+    $("#imgInp").change(function(){
+
+        readURL(this);
+    });
+});

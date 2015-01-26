@@ -1,29 +1,130 @@
-<div class="navbar navbar-default navbar-static-top" ng-controller="NavbarCtrl">
-  <div class="container">
-    <div class="navbar-header">
-      <button class="navbar-toggle" type="button" ng-click="isCollapsed = !isCollapsed">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a href="/" class="navbar-brand"><img src="assets/images/logo.png" style="max-width:100px; margin-top: -7px;"></a>
-    </div>
-    <div collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
-      <ul class="nav navbar-nav">
-        <li ng-repeat="item in menu" ng-class="{active: isActive(item.link)}">
-            <a ng-href="{{item.link}}">{{item.title}}</a>
-        </li>
-        <li ng-show="isAdmin()" ng-class="{active: isActive('/admin')}"><a href="/admin">Admin</a></li>
-      </ul>
+<div class="navbar navbar-default navbar-static-top" ng-controller="NavbarCtrl" style="margin-bottom: 0">
+    <div class="container">
+        <div class="navbar-header">
+            <!--<button class="navbar-toggle" type="button" ng-click="isCollapsed = !isCollapsed">-->
+            <!--<span class="sr-only">Toggle navigation</span>-->
+            <!--<span class="icon-bar"></span>-->
+            <!--<span class="icon-bar"></span>-->
+            <!--<span class="icon-bar"></span>-->
+            <!--</button>-->
+            <a href="/" class="navbar-brand"><img src="assets/images/logo.png"
+                                                  style="width:150px; margin-top: -10px;" /></a>
+        </div>
+        <div collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
+            <ul class="nav navbar-nav">
+                <!--<li ng-repeat="item in menu" ng-class="{active: isActive(item.link)}">-->
+                <!--<a ng-href="{{item.link}}">{{item.title}}</a>-->
+                <!--</li>-->
+                <!--<li ng-show="isAdmin()" ng-class="{active: isActive('/admin')}"><a href="/admin">Admin</a></li>-->
+            </ul>
 
-      <ul class="nav navbar-nav navbar-right">
-        <li ng-hide="isLoggedIn()" ng-class="{active: isActive('/signup')}"><a href="/signup">Sign up</a></li>
-        <li ng-hide="isLoggedIn()" ng-class="{active: isActive('/login')}"><a href="/login">Login</a></li>
-        <li ng-show="isLoggedIn()"><p class="navbar-text">Hello {{ getCurrentUser().name }}</p> </li>
-        <li ng-show="isLoggedIn()" ng-class="{active: isActive('/settings')}"><a href="/settings"><span class="glyphicon glyphicon-cog"></span></a></li>
-        <li ng-show="isLoggedIn()" ng-class="{active: isActive('/logout')}"><a href="" ng-click="logout()">Logout</a></li>
-      </ul>
+            <ul class="navbar-brand"
+                style="position: absolute; width: 100%; left: 0; text-align: center; margin: auto;">
+                <li style="list-style: none;">520 Park</li>
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#"><span class="glyphicon glyphicon-question-sign"></span></a></li>
+                <li><a href="#"><span class="glyphicon glyphicon-bell"></span></a></li>
+                <li><a href="#"><span class="glyphicon glyphicon-user"></span></a></li>
+                <!--<li ng-hide="isLoggedIn()" ng-class="{active: isActive('/signup')}"><a href="/signup">Sign up</a></li>
+                -->
+                <!--<li ng-hide="isLoggedIn()" ng-class="{active: isActive('/login')}"><a href="/login">Login</a></li>-->
+                <!--<li ng-show="isLoggedIn()"><p class="navbar-text">Hello {{ getCurrentUser().name }}</p></li>-->
+                <!--<li ng-show="isLoggedIn()" ng-class="{active: isActive('/settings')}"><a href="/settings"><span-->
+                        <!--class="glyphicon glyphicon-cog"></span></a></li>-->
+                <!--<li ng-show="isLoggedIn()" ng-class="{active: isActive('/logout')}">
+                <a href="" ng-click="logout()">Logout</a>-->
+                <!--</li>-->
+            </ul>
+        </div>
     </div>
-  </div>
 </div>
+<div style="height: 36px">
+        <nav class="custom-navbar">
+            <ul style="margin: 0; padding-left: 27px">
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+                <li><a href="#">aaaaaaaa</a></li>
+            </ul>
+        </nav>
+</div>
+
+<style>
+    .custom-navbar a {
+        text-decoration: none;
+        /*outline: none !important;*/
+    }
+
+    .custom-navbar li {
+        list-style: none;
+        display: inline-block;
+    }
+
+    .custom-navbar a {
+        text-align: center;
+        width: 130px; /*110%;;*/
+        color: black;
+        background: grey;
+        position: relative;
+        display: inline-block;
+        margin: 0 10px;
+        padding: 8px 11px;
+        text-shadow: 0 1px 0 rgba(0, 2, 0, 0.4);
+        border-radius: 7px 7px 0 0; /* just to smooth the top edges */
+    }
+
+    .custom-navbar a::before {
+        border-radius: 12px 0 0 0;
+        transform: skew(-24deg);
+        left: -25px; /* play with this one to give the LI border ~2px extrusion */
+        content: " ";
+        position: absolute;
+        top: 0;
+        width: 33px;
+        height: 100%;
+        background-color: inherit;
+    }
+
+    .custom-navbar a::after {
+        content: " ";
+        position: absolute;
+        top: 0;
+        width: 33px;
+        height: 100%;
+        background-color: inherit;
+        z-index: 1;
+        border-radius: 0 12px 0 0;
+        transform: skew(24deg);
+        right: -25px; /* play with this one to give the LI border ~2px extrusion */
+        z-index: 1; /* overlap next element */
+        border-right: 1px solid black;
+    }
+
+    /* LI ACTIVE  */
+    .custom-navbar li.active {
+        border-bottom: 2px  white;
+    }
+
+    .custom-navbar li.active a {
+        /*border-top: 1px solid darkgray;*/
+        color: black;
+        background: #ffffff;
+        z-index: 1;
+    }
+
+    .custom-navbar li.active a::before {
+        /*border-top: 1px solid darkgray;*/
+        z-index: 1; /* overlap prev element */
+    }
+
+    .custom-navbar li.active a::after {
+        /*border-top: 1px solid darkgray;*/
+        z-indxe: -1;
+    }
+</style>

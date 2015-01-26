@@ -21,3 +21,13 @@ angular.module('firstAppApp')
       return route === $location.path();
     };
   });
+
+$(document).ready(function() {
+    $(document).on("click", "a", function(e) {
+        e.preventDefault();
+    });
+    $(document).on("click", "nav li", function() {
+        $("nav li").removeClass("active");
+        $(this).addClass("active");
+    });
+})

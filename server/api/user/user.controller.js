@@ -5,6 +5,7 @@ var passport = require('passport');
 var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
 
+
 var validationError = function(res, err) {
   return res.json(422, err);
 };
@@ -19,6 +20,14 @@ exports.index = function(req, res) {
     res.json(200, users);
   });
 };
+
+
+exports.upload = function(req,res) {
+  console.log(req.body)
+ // var userId = req.user._id;
+ // User.addFile(userId, "test" , req.pipe());
+};
+
 
 /**
  * Creates a new user

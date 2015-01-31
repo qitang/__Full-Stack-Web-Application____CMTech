@@ -14,7 +14,13 @@ var UserSchema = new Schema({
   },
   hashedPassword: String,
   provider: String,
-  salt: String
+  salt: String,
+  phone: String,
+  projects: [{
+    type : Schema.Types.ObjectId,
+    ref : 'Project'
+  }],
+  profile_picture: Schema.Types.ObjectId
 });
 
 /**
@@ -38,6 +44,7 @@ UserSchema
     return {
       'first_name': this.first_name,
       'last_name' : this.last_name,
+      'phone' : this.phone,
       'role': this.role
     };
   });
@@ -116,7 +123,24 @@ UserSchema.methods = {
   authenticate: function(plainText) {
     return this.encryptPassword(plainText) === this.hashedPassword;
   },
-
+  
+  addFile : function(id,name,file) {
+    UserSchema.findOne({_id:id},function(err,user){
+      var id = mongoose.Types.ObjectId();
+      var writestream = GridFS.createWriteStream({
+        _id : id,
+        filename : name,
+        mode: 'W'
+      });
+      writestream.on('close' ,function(file){
+        user.profile_picture = id;
+        user.save(function(err){
+          console.log('user profile pic saved!');
+        });
+      });
+      file.pipe(writestream);
+    });
+  },
   /**
    * Make salt
    *

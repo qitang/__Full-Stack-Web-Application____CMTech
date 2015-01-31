@@ -4,6 +4,8 @@ var express = require('express');
 var controller = require('./user.controller');
 var config = require('../../config/environment');
 var auth = require('../../auth/auth.service');
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 var router = express.Router();
 
@@ -13,5 +15,6 @@ router.get('/me', auth.isAuthenticated(), controller.me);
 router.put('/:id/password', auth.isAuthenticated(), controller.changePassword);
 router.get('/:id', auth.isAuthenticated(), controller.show);
 router.post('/', controller.create);
+router.post('/picture', multipartMiddleware,controller.upload);
 
 module.exports = router;

@@ -3,8 +3,8 @@
 angular.module('firstAppApp')
   .config(function ($routeProvider) {
     $routeProvider
-      .when('/main', {
-        templateUrl: 'app/main/main.html',
-        controller: 'MainCtrl'
+      .when('/', {
+        templateUrl: 'app/home/home.html',
+        controller: 'HomeCtrl'
       });
   });

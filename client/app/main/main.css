@@ -1,41 +1,57 @@
-.jumbotron-background {
-    background-image: url('/assets/images/jumbotron-background.jpeg');
-    background-repeat: no-repeat;
+.cmtech-tabs {
+    margin-top: 15px;
+    height: 700px;
+    width: 100%;
+    background: url("/assets/images/tab1.png");
     background-size: 100% 100%;
-    height: 350px;
+    background-repeat: no-repeat;
 }
 
-.jumbotron-background .row {
-    margin-top: 100px;
+.cmtech-tabs ul {
+    margin-left: 1.6%; /*20px*/
 }
 
-.thing-form {
-    margin: 20px 0;
+.cmtech-tabs ul li {
+    height: 50px;
+    width: 12.5%; /*155px*/
 }
 
-#banner {
-    border-bottom: none;
-    margin-top: -20px;
-}
-
-#banner h1 {
-    font-size: 60px;
-    line-height: 1;
-    letter-spacing: -1px;
-}
-
-.hero-unit {
-    position: relative;
-    padding: 30px 15px;
-    color: #F5F5F5;
+.cmtech-tabs ul li a {
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
     text-align: center;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-    background: #4393B9;
+    padding: 20px 0 10px 0;
+    color: #000000;
 }
 
-.footer {
-    text-align: center;
-    padding: 30px 0;
-    margin-top: 70px;
-    border-top: 1px solid #E5E5E5;
+#CMTechTab5 {
+    text-align: initial;
+    padding-left: 26%;
+}
+
+#CMTechTab6 {
+    text-align: initial;
+    padding-left: 18%;
+}
+
+#CMTechTab7 {
+    text-align: initial;
+    padding-left: 17%;
+}
+
+#CMTechTab8 {
+    text-align: initial;
+    padding-left: 15%;
+}
+
+.cmtech-tabs ul li a:focus,
+.cmtech-tabs ul li a:hover {
+    background-color: rgba(100, 100, 100, 0);
+}
+
+.cmtech-tabs ul li a:focus {
+    color: dodgerblue;
 }

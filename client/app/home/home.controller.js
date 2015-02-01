@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('firstAppApp').controller('MainCtrl', function ($scope, $http, $modal, socket) {
+angular.module('firstAppApp').controller('HomeCtrl', function ($scope, $http, $modal, socket) {
     $scope.awesomeThings = [];
 
     $http.get('/api/things').success(function (awesomeThings) {
@@ -118,30 +118,5 @@ angular.module('firstAppApp').controller('MainCtrl', function ($scope, $http, $m
         };
     };
 
-});
-
-$(document).ready(function () {
-    $(document).on("click", "#CMTechTab1", function () {
-        $(".cmtech-tabs").css({
-                                  "margin-top": "15px",
-                                  "height": "700px",
-                                  "width": "100%",
-                                  "background": "url('/assets/images/tab1.png')",
-                                  "background-size": "100% 100%",
-                                  "background-repeat": "no-repeat"
-
-                              });
-    });
-
-    $(document).on("click", "#CMTechTab2", function () {
-        $(".cmtech-tabs").css({
-                                  "margin-top": "15px",
-                                  "height": "700px",
-                                  "width": "100%",
-                                  "background": "url('/assets/images/tab2.png')",
-                                  "background-size": "100% 100%",
-                                  "background-repeat": "no-repeat"
-                              });
-    });
-
-});
+})
+;

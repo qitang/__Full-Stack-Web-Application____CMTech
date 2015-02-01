@@ -26,7 +26,7 @@ angular.module('firstAppApp').controller('HomeCtrl', function ($scope, $http, $m
 
     $scope.signupModal = function () {
         var modalInstance = $modal.open({
-                                            templateUrl: "/components/modal/modal.signup.html",
+                                            templateUrl: "/components/modal/modal_signup.html",
                                             size: "md",
                                             controller: SignupModalCtrl
                                         });
@@ -73,7 +73,7 @@ angular.module('firstAppApp').controller('HomeCtrl', function ($scope, $http, $m
 
     $scope.loginModal = function () {
         var modalInstance = $modal.open({
-                                            templateUrl: "/components/modal/modal.login.html",
+                                            templateUrl: "/components/modal/modal_login.html",
                                             size: "md",
                                             controller: LoginModalCtrl
                                         });

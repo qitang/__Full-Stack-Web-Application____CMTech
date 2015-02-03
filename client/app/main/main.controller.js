@@ -9,6 +9,13 @@ angular.module('firstAppApp')
       socket.syncUpdates('thing', $scope.awesomeThings);
     });
     
+    $scope.download = function() {
+
+      $http.get('/api/users/test/b').success(function(data) {
+        console.log(data)
+      });
+    }
+
     $scope.getCurrentUser = Auth.getCurrentUser;
     $scope.addThing = function() {
       if($scope.newThing === '') {

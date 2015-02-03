@@ -22,14 +22,24 @@ exports.index = function(req, res) {
   });
 };
 
+exports.file = function(req, res) {
+  res.set({
+  'Content-Type': 'image/png',
+  'Content-Disposition': 'attachment'
+})
+    // stream the file
+    fs.createReadStream('name.png', 'base64').pipe(res);
+};
+
+
 exports.test = function(req, res){
    User.findOne({email:'test@test.com'},function(err,user){
     user.addFile(fs.createReadStream(req.files.file.path), req.files.file.name,function(id){
       user.profile_picture = id;
       //res.writeHead(200, {'Content-Type': 'image/png'});
       //res.end(data); // Send the file data to the browser.
-     // user.getFile().pipe(res);
-     res.json(user.getFile())
+      user.getFile().pipe(res);
+     //res.json(user.getFile())
     })
    });
 };

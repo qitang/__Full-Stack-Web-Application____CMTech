@@ -138,10 +138,11 @@ UserSchema.methods = {
 
       //return readstream;
       //console.log(readstream)
-     var f=fs.createWriteStream('name.png');
-      readstream.pipe(f);
-      var kk = fs.createReadStream('name.png');
-      console.log(kk.toString('base64'))
+     //var f=fs.createWriteStream('name.png');
+     // readstream.pipe(f);
+      return readstream;
+     
+
 
   },
   addFile : function(file, name, callback) {

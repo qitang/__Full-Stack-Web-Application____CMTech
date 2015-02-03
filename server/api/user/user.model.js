@@ -3,6 +3,9 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var crypto = require('crypto');
+var Grid = require('gridfs-stream');
+var GridFS = Grid(mongoose.connection.db, mongoose.mongo);
+var fs = require('fs');
 
 var UserSchema = new Schema({
   first_name: String,
@@ -45,7 +48,8 @@ UserSchema
       'first_name': this.first_name,
       'last_name' : this.last_name,
       'phone' : this.phone,
-      'role': this.role
+      'role': this.role,
+      'profile_picture' : this.profile_picture
     };
   });
 
@@ -123,9 +127,26 @@ UserSchema.methods = {
   authenticate: function(plainText) {
     return this.encryptPassword(plainText) === this.hashedPassword;
   },
-  
-  addFile : function(id,name,file) {
-    UserSchema.findOne({_id:id},function(err,user){
+
+  getFile : function() {
+      // GridFS.files.find({ _id : this.profile_picture}).toArray(function (err, files) {
+      // });
+   var data = '';
+      var readstream = GridFS.createReadStream({
+        _id : this.profile_picture,
+   });
+
+      //return readstream;
+      //console.log(readstream)
+     var f=fs.createWriteStream('name.png');
+      readstream.pipe(f);
+      var kk = fs.createReadStream('name.png');
+      console.log(kk.toString('base64'))
+
+  },
+  addFile : function(file, name, callback) {
+      var user = this;
+  //  UserSchema.findOne({_id:id},function(err,user){
       var id = mongoose.Types.ObjectId();
       var writestream = GridFS.createWriteStream({
         _id : id,
@@ -133,13 +154,14 @@ UserSchema.methods = {
         mode: 'W'
       });
       writestream.on('close' ,function(file){
-        user.profile_picture = id;
-        user.save(function(err){
-          console.log('user profile pic saved!');
-        });
+        callback(id);
+        // user.profile_picture = id;
+        // user.save(function(err){
+        //   console.log('user profile pic saved!');
+        // });
       });
       file.pipe(writestream);
-    });
+   // });
   },
   /**
    * Make salt

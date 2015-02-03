@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('firstAppApp')
-  .factory('Auth', function Auth($location, $rootScope, $http, User, $cookieStore, $q) {
+  .factory('Auth', function Auth($location, $rootScope, $http, User, $cookieStore, $q,$upload) {
     var currentUser = {};
     if($cookieStore.get('token')) {
       currentUser = User.get();
@@ -59,16 +59,45 @@ angular.module('firstAppApp')
       createUser: function(user, callback) {
         var cb = callback || angular.noop;
 
-        return User.save(user,
-          function(data) {
-            $cookieStore.put('token', data.token);
-            currentUser = User.get();
-            return cb(user);
-          },
-          function(err) {
-            this.logout();
-            return cb(err);
-          }.bind(this)).$promise;
+               return User.save(user,
+                 function(data) {
+                   $cookieStore.put('token', data.token);
+                   currentUser = User.get();
+                   return cb(user);
+                 },
+                 function(err) {
+                   this.logout();
+                   return cb(err);
+                 }.bind(this)).$promise;
+
+        // var cb = callback || angular.noop;
+        // return $upload.upload(user).then(
+        //   function(data){
+        //     $cookieStore.put('token', data.data.token);
+        //     currentUser = User.get();
+        //     return cb(user);
+        //   }, function(err){
+        //    // console.log(err)
+        //       this.logout();
+        //       return cb(err) || err;
+        //   }.bind(this)
+        // );
+        // return $upload.upload(user).success(function(data){
+        //   $cookieStore.put('token', data.token);
+        //   currentUser = User.get();
+        //   return cb(user);
+        // });
+
+        // return User.save(user,
+        //   function(data) {
+        //     $cookieStore.put('token', data.token);
+        //     currentUser = User.get();
+        //     return cb(user);
+        //   },
+        //   function(err) {
+        //     this.logout();
+        //     return cb(err);
+        //   }.bind(this)).$promise;
       },
 
       /**

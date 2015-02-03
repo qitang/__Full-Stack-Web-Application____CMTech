@@ -1,14 +1,15 @@
 'use strict';
 
 angular.module('firstAppApp')
-  .controller('MainCtrl', function ($scope, $http, socket) {
+  .controller('MainCtrl', function ($scope, $http, socket, fileReader, Auth) {
     $scope.awesomeThings = [];
 
     $http.get('/api/things').success(function(awesomeThings) {
       $scope.awesomeThings = awesomeThings;
       socket.syncUpdates('thing', $scope.awesomeThings);
     });
-
+    
+    $scope.getCurrentUser = Auth.getCurrentUser;
     $scope.addThing = function() {
       if($scope.newThing === '') {
         return;

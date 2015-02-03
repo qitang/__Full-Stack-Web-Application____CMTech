@@ -2,6 +2,10 @@
 
 <div class="container">
   <div class="row">
+
+
+   <button ng-click='click()'>dsds</button>
+
     <div class="col-sm-12">
       <h1>Sign up</h1>
     </div>
@@ -28,10 +32,18 @@
             A last name is required
           </p>
         </div>
-
+    Profile Picture: <input type="file" ng-file-select="onFileSelect($files)" ng-model="files" name="file" accept="image/*" ng-file-change="ko =$files ">
+    <button tyep='button' ng-click='test()'>blblb</button>
+          <br>
+       <b>Preview:</b><br />
+   <i ng-hide="imageSrc">No image choosed</i>
+   <img style='width:200px' ng-src="{{imageSrc}}" id ='up'/><br/>
+  
+        
         <div class="form-group" ng-class="{ 'has-success': form.email.$valid && submitted,
                                             'has-error': form.email.$invalid && submitted }">
           <label>Email</label>
+
 
           <input type="email" name="email" class="form-control" ng-model="user.email"
                  required

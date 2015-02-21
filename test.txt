@@ -1,0 +1,1425 @@
+diff --git a/bower.json b/bower.json
+index b9b258b..529af7c 100644
+--- a/bower.json
++++ b/bower.json
+@@ -14,8 +14,7 @@
+     "font-awesome": ">=4.1.0",
+     "lodash": "~2.4.1",
+     "angular-socket-io": "~0.6.0",
+-    "angular-ui-router": "~0.2.10",
+-    "angular-ui-select": "~0.9.7"
++    "angular-ui-router": "~0.2.10"
+   },
+   "devDependencies": {
+     "angular-mocks": ">=1.2.*",
+diff --git a/client/app/account/login/login.controller.js b/client/app/account/login/login.controller.js
+index c1aa1f5..246a71a 100644
+--- a/client/app/account/login/login.controller.js
++++ b/client/app/account/login/login.controller.js
+@@ -10,7 +10,7 @@ angular.module('qiApp')
+ 
+       if(form.$valid) {
+         Auth.login({
+-          user_email: $scope.user.email,
++          email: $scope.user.email,
+           password: $scope.user.password
+         })
+         .then( function() {
+diff --git a/client/app/app.js b/client/app/app.js
+index b7edb60..6f17e35 100644
+--- a/client/app/app.js
++++ b/client/app/app.js
+@@ -6,8 +6,7 @@ angular.module('qiApp', [
+   'ngSanitize',
+   'btford.socket-io',
+   'ui.router',
+-  'ui.bootstrap',
+-  'ui.select'
++  'ui.bootstrap'
+ ])
+   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+     $urlRouterProvider.otherwise('/');
+diff --git a/client/app/home/home.controller.js b/client/app/home/home.controller.js
+index 0df0b32..b1c2fb7 100644
+--- a/client/app/home/home.controller.js
++++ b/client/app/home/home.controller.js
+@@ -1,11 +1,19 @@
+ 'use strict';
+ 
+-angular.module('qiApp').controller('HomeCtrl', function ($rootScope, $scope, $http, $modal, $location, Auth) {
++angular.module('qiApp').controller('HomeCtrl', function ($scope, $modal) {
+     $scope.signupModal = function () {
+         var modalInstance = $modal.open({
+             templateUrl: "/components/modal/modal_signup.html",
+             size: "md",
+-            controller: SignupModalCtrl
++            controller: SignupModalCtrl,
++            resolved: {
++                $location: function () {
++                    return $location;
++                },
++                Auth: function () {
++                    return Auth;
++                }
++            }
+         });
+         modalInstance.result.then(function (ctrl) {
+             if (ctrl) {
+@@ -14,16 +22,6 @@ angular.module('qiApp').controller('HomeCtrl', function ($rootScope, $scope, $ht
+         });
+     };
+     var SignupModalCtrl = function ($scope, $modalInstance, Auth, $location) {
+-        $rootScope.getCompanies = function () {
+-            $http.get("api/companies").success(function (data) {
+-                console.log(data)
+-                $scope.companies = data;
+-            }).error(function (data) {
+-
+-            });
+-        };
+-        $rootScope.getCompanies();
+-
+         $scope.user = {};
+         $scope.errors = {};
+         $scope.selectImage = function () {
+@@ -49,10 +47,11 @@ angular.module('qiApp').controller('HomeCtrl', function ($rootScope, $scope, $ht
+         $scope.signup = function (form) {
+             $scope.submitted = true;
+             if (!$scope.user.blob) {
+-                alert("Please upload a photo!")
++                // alert("Please upload a photo!")
+             } else if (form.$valid) {
++                console.log("valid!");
+                 if ($scope.user.password === $scope.user.confirmPassword) {
+-                    //                    console.log("password matched!")
++                    console.log("password matched!")
+                     $scope.user.user_profile_url = $scope.user.blob.url;
+                     Auth.createUser($scope.user).then(function () {
+                         $location.path('/project');
+@@ -60,6 +59,7 @@ angular.module('qiApp').controller('HomeCtrl', function ($rootScope, $scope, $ht
+                     }).catch(function (err) {
+                         err = err.data;
+                         $scope.errors = {};
++
+                         // Update validity of form fields that match the mongoose errors
+                         angular.forEach(err.errors, function (error, field) {
+                             form[field].$setValidity('mongoose', false);
+@@ -70,76 +70,38 @@ angular.module('qiApp').controller('HomeCtrl', function ($rootScope, $scope, $ht
+                     alert("Confirm password and password don't match!");
+                 }
+             } else {
+-                console.log("Form Invalid");
++                console.log("form invalid!")
+             }
+         };
+         $scope.cancel = function () {
+             $modalInstance.close(false);
+         };
+-
+-        $scope.createCompanyModal = function () {
+-            var modalInstance = $modal.open({
+-                templateUrl: "/components/modal/modal_createcompany.html",
+-                size: "md",
+-                controller: CreateCompanyModalCtrl
+-            });
+-            modalInstance.result.then(function (ctrl) {
+-                if (ctrl) {
+-                    console.log("modal closed");
+-                }
+-            });
+-        };
+     };
+-
+-    var CreateCompanyModalCtrl = function ($rootScope, $scope, $modalInstance) {
+-        $scope.company = {};
+-        $scope.errors = {};
+-        $http.get("/api/companies/roles/info").success(function (data) {
+-//            console.log(data);
+-            $scope.companyRoles = data;
+-        }).error(function (data) {
+-
+-        });
+-        $scope.createCompany = function (form) {
+-            if (form.$valid) {
+-                //                console.log($scope.company);
+-                // (TODO) HTTP POST REQUEST TO CREATE A COMPANY
+-                $http.post("/api/companies", $scope.company).success(function (data) {
+-                    console.log(data);
+-                    $rootScope.getCompanies();
+-                    $modalInstance.close(true);
+-
+-                }).error(function (data) {
+-
+-                });
+-                // (TODO) UPDATE ROOTSCOPE FOR COMPANY LIST
+-
+-            } else {
+-                console.log("Form Invalid");
+-            }
+-        };
+-        $scope.cancel = function () {
+-            $modalInstance.close(false);
+-        };
+-    };
+-
+     $scope.loginModal = function () {
+         var modalInstance = $modal.open({
+             templateUrl: "/components/modal/modal_login.html",
+             size: "md",
+-            controller: LoginModalCtrl
++            controller: LoginModalCtrl,
++            resolved: {
++                $location: function () {
++                    return $location;
++                },
++                Auth: function () {
++                    return Auth;
++                }
++            }
+         });
+         modalInstance.result.then(function (ctrl) {
+             if (ctrl) {
+-                console.log("Form Submitted");
++                console.log("modal closed");
+             }
+         });
+-    };
++    }
+     var LoginModalCtrl = function ($scope, $modalInstance, Auth, $location) {
+         $scope.user = {};
+         $scope.errors = {};
+         $scope.login = function (form) {
+-            $scope.submitted = true;
++            $scope.submitted = true
+             if (form.$valid) {
+                 Auth.login({
+                     user_email: $scope.user.user_email,
+@@ -150,14 +112,10 @@ angular.module('qiApp').controller('HomeCtrl', function ($rootScope, $scope, $ht
+                 }).catch(function (err) {
+                     $scope.errors.other = err.message;
+                 });
+-            } else {
+-                console.log("Form Invalid")
+             }
+         };
+         $scope.cancel = function () {
+             $modalInstance.close(false);
+         };
+-    };
+-
+-
++    }
+ });
+diff --git a/client/app/main/submittal/submittal.controller.js b/client/app/main/submittal/submittal.controller.js
+index 1bef41d..12f686b 100644
+--- a/client/app/main/submittal/submittal.controller.js
++++ b/client/app/main/submittal/submittal.controller.js
+@@ -1,277 +1,18 @@
+ 'use strict';
+ 
+-angular.module('qiApp').controller('SubmittalCtrl', function ($scope, $http, $stateParams) {
++angular.module('qiApp').controller('SubmittalCtrl', function ($scope, $stateParams) {
+     $scope.projectID = $stateParams.projectID;
+-    $scope.isSubmittalFormView = false;
+-
+-    // get proejct info
+-    $scope.getProjectInfo = function() {
+-        $http.get("/api/projects/" + $scope.projectID).success(function(data) {
+-            console.log(data)
+-            $scope.projectName = data.name;
+-            $scope.projectAddress = data.address;
+-        }).error(function(data) {
+-
+-        })
++    $scope.isCreatingSubmittal = false;
++    $scope.createSubmittalView = function() {
++        $scope.isCreatingSubmittal = true;
+     };
+-
+-
+-    $scope.viewCreateSubmittalForm = function () {
+-        $scope.isSubmittalFormView = true;
+-    };
+-    $scope.createSubmittal = function (form) {
+-                console.log($scope.country)
++    $scope.createSubmittal = function(form) {
++//        console.log($scope.createSubmittalForm)
+         // (TODO) HTTP POST REQUEST..
+ 
++
+     }
+-    $scope.leaveCreateSubmittal = function () {
+-        $scope.isSubmittalFormView = false;
++    $scope.leaveCreateSubmittal = function() {
++        $scope.isCreatingSubmittal = false;
+     };
+-
+-    $scope.country = {};
+-    $scope.countries = [ // Taken from https://gist.github.com/unceus/6501985
+-        {name: 'Afghanistan', code: 'AF'},
+-        {name: 'Åland Islands', code: 'AX'},
+-        {name: 'Albania', code: 'AL'},
+-        {name: 'Algeria', code: 'DZ'},
+-        {name: 'American Samoa', code: 'AS'},
+-        {name: 'Andorra', code: 'AD'},
+-        {name: 'Angola', code: 'AO'},
+-        {name: 'Anguilla', code: 'AI'},
+-        {name: 'Antarctica', code: 'AQ'},
+-        {name: 'Antigua and Barbuda', code: 'AG'},
+-        {name: 'Argentina', code: 'AR'},
+-        {name: 'Armenia', code: 'AM'},
+-        {name: 'Aruba', code: 'AW'},
+-        {name: 'Australia', code: 'AU'},
+-        {name: 'Austria', code: 'AT'},
+-        {name: 'Azerbaijan', code: 'AZ'},
+-        {name: 'Bahamas', code: 'BS'},
+-        {name: 'Bahrain', code: 'BH'},
+-        {name: 'Bangladesh', code: 'BD'},
+-        {name: 'Barbados', code: 'BB'},
+-        {name: 'Belarus', code: 'BY'},
+-        {name: 'Belgium', code: 'BE'},
+-        {name: 'Belize', code: 'BZ'},
+-        {name: 'Benin', code: 'BJ'},
+-        {name: 'Bermuda', code: 'BM'},
+-        {name: 'Bhutan', code: 'BT'},
+-        {name: 'Bolivia', code: 'BO'},
+-        {name: 'Bosnia and Herzegovina', code: 'BA'},
+-        {name: 'Botswana', code: 'BW'},
+-        {name: 'Bouvet Island', code: 'BV'},
+-        {name: 'Brazil', code: 'BR'},
+-        {name: 'British Indian Ocean Territory', code: 'IO'},
+-        {name: 'Brunei Darussalam', code: 'BN'},
+-        {name: 'Bulgaria', code: 'BG'},
+-        {name: 'Burkina Faso', code: 'BF'},
+-        {name: 'Burundi', code: 'BI'},
+-        {name: 'Cambodia', code: 'KH'},
+-        {name: 'Cameroon', code: 'CM'},
+-        {name: 'Canada', code: 'CA'},
+-        {name: 'Cape Verde', code: 'CV'},
+-        {name: 'Cayman Islands', code: 'KY'},
+-        {name: 'Central African Republic', code: 'CF'},
+-        {name: 'Chad', code: 'TD'},
+-        {name: 'Chile', code: 'CL'},
+-        {name: 'China', code: 'CN'},
+-        {name: 'Christmas Island', code: 'CX'},
+-        {name: 'Cocos (Keeling) Islands', code: 'CC'},
+-        {name: 'Colombia', code: 'CO'},
+-        {name: 'Comoros', code: 'KM'},
+-        {name: 'Congo', code: 'CG'},
+-        {name: 'Congo, The Democratic Republic of the', code: 'CD'},
+-        {name: 'Cook Islands', code: 'CK'},
+-        {name: 'Costa Rica', code: 'CR'},
+-        {name: 'Cote D\'Ivoire', code: 'CI'},
+-        {name: 'Croatia', code: 'HR'},
+-        {name: 'Cuba', code: 'CU'},
+-        {name: 'Cyprus', code: 'CY'},
+-        {name: 'Czech Republic', code: 'CZ'},
+-        {name: 'Denmark', code: 'DK'},
+-        {name: 'Djibouti', code: 'DJ'},
+-        {name: 'Dominica', code: 'DM'},
+-        {name: 'Dominican Republic', code: 'DO'},
+-        {name: 'Ecuador', code: 'EC'},
+-        {name: 'Egypt', code: 'EG'},
+-        {name: 'El Salvador', code: 'SV'},
+-        {name: 'Equatorial Guinea', code: 'GQ'},
+-        {name: 'Eritrea', code: 'ER'},
+-        {name: 'Estonia', code: 'EE'},
+-        {name: 'Ethiopia', code: 'ET'},
+-        {name: 'Falkland Islands (Malvinas)', code: 'FK'},
+-        {name: 'Faroe Islands', code: 'FO'},
+-        {name: 'Fiji', code: 'FJ'},
+-        {name: 'Finland', code: 'FI'},
+-        {name: 'France', code: 'FR'},
+-        {name: 'French Guiana', code: 'GF'},
+-        {name: 'French Polynesia', code: 'PF'},
+-        {name: 'French Southern Territories', code: 'TF'},
+-        {name: 'Gabon', code: 'GA'},
+-        {name: 'Gambia', code: 'GM'},
+-        {name: 'Georgia', code: 'GE'},
+-        {name: 'Germany', code: 'DE'},
+-        {name: 'Ghana', code: 'GH'},
+-        {name: 'Gibraltar', code: 'GI'},
+-        {name: 'Greece', code: 'GR'},
+-        {name: 'Greenland', code: 'GL'},
+-        {name: 'Grenada', code: 'GD'},
+-        {name: 'Guadeloupe', code: 'GP'},
+-        {name: 'Guam', code: 'GU'},
+-        {name: 'Guatemala', code: 'GT'},
+-        {name: 'Guernsey', code: 'GG'},
+-        {name: 'Guinea', code: 'GN'},
+-        {name: 'Guinea-Bissau', code: 'GW'},
+-        {name: 'Guyana', code: 'GY'},
+-        {name: 'Haiti', code: 'HT'},
+-        {name: 'Heard Island and Mcdonald Islands', code: 'HM'},
+-        {name: 'Holy See (Vatican City State)', code: 'VA'},
+-        {name: 'Honduras', code: 'HN'},
+-        {name: 'Hong Kong', code: 'HK'},
+-        {name: 'Hungary', code: 'HU'},
+-        {name: 'Iceland', code: 'IS'},
+-        {name: 'India', code: 'IN'},
+-        {name: 'Indonesia', code: 'ID'},
+-        {name: 'Iran, Islamic Republic Of', code: 'IR'},
+-        {name: 'Iraq', code: 'IQ'},
+-        {name: 'Ireland', code: 'IE'},
+-        {name: 'Isle of Man', code: 'IM'},
+-        {name: 'Israel', code: 'IL'},
+-        {name: 'Italy', code: 'IT'},
+-        {name: 'Jamaica', code: 'JM'},
+-        {name: 'Japan', code: 'JP'},
+-        {name: 'Jersey', code: 'JE'},
+-        {name: 'Jordan', code: 'JO'},
+-        {name: 'Kazakhstan', code: 'KZ'},
+-        {name: 'Kenya', code: 'KE'},
+-        {name: 'Kiribati', code: 'KI'},
+-        {name: 'Korea, Democratic People\'s Republic of', code: 'KP'},
+-        {name: 'Korea, Republic of', code: 'KR'},
+-        {name: 'Kuwait', code: 'KW'},
+-        {name: 'Kyrgyzstan', code: 'KG'},
+-        {name: 'Lao People\'s Democratic Republic', code: 'LA'},
+-        {name: 'Latvia', code: 'LV'},
+-        {name: 'Lebanon', code: 'LB'},
+-        {name: 'Lesotho', code: 'LS'},
+-        {name: 'Liberia', code: 'LR'},
+-        {name: 'Libyan Arab Jamahiriya', code: 'LY'},
+-        {name: 'Liechtenstein', code: 'LI'},
+-        {name: 'Lithuania', code: 'LT'},
+-        {name: 'Luxembourg', code: 'LU'},
+-        {name: 'Macao', code: 'MO'},
+-        {name: 'Macedonia, The Former Yugoslav Republic of', code: 'MK'},
+-        {name: 'Madagascar', code: 'MG'},
+-        {name: 'Malawi', code: 'MW'},
+-        {name: 'Malaysia', code: 'MY'},
+-        {name: 'Maldives', code: 'MV'},
+-        {name: 'Mali', code: 'ML'},
+-        {name: 'Malta', code: 'MT'},
+-        {name: 'Marshall Islands', code: 'MH'},
+-        {name: 'Martinique', code: 'MQ'},
+-        {name: 'Mauritania', code: 'MR'},
+-        {name: 'Mauritius', code: 'MU'},
+-        {name: 'Mayotte', code: 'YT'},
+-        {name: 'Mexico', code: 'MX'},
+-        {name: 'Micronesia, Federated States of', code: 'FM'},
+-        {name: 'Moldova, Republic of', code: 'MD'},
+-        {name: 'Monaco', code: 'MC'},
+-        {name: 'Mongolia', code: 'MN'},
+-        {name: 'Montserrat', code: 'MS'},
+-        {name: 'Morocco', code: 'MA'},
+-        {name: 'Mozambique', code: 'MZ'},
+-        {name: 'Myanmar', code: 'MM'},
+-        {name: 'Namibia', code: 'NA'},
+-        {name: 'Nauru', code: 'NR'},
+-        {name: 'Nepal', code: 'NP'},
+-        {name: 'Netherlands', code: 'NL'},
+-        {name: 'Netherlands Antilles', code: 'AN'},
+-        {name: 'New Caledonia', code: 'NC'},
+-        {name: 'New Zealand', code: 'NZ'},
+-        {name: 'Nicaragua', code: 'NI'},
+-        {name: 'Niger', code: 'NE'},
+-        {name: 'Nigeria', code: 'NG'},
+-        {name: 'Niue', code: 'NU'},
+-        {name: 'Norfolk Island', code: 'NF'},
+-        {name: 'Northern Mariana Islands', code: 'MP'},
+-        {name: 'Norway', code: 'NO'},
+-        {name: 'Oman', code: 'OM'},
+-        {name: 'Pakistan', code: 'PK'},
+-        {name: 'Palau', code: 'PW'},
+-        {name: 'Palestinian Territory, Occupied', code: 'PS'},
+-        {name: 'Panama', code: 'PA'},
+-        {name: 'Papua New Guinea', code: 'PG'},
+-        {name: 'Paraguay', code: 'PY'},
+-        {name: 'Peru', code: 'PE'},
+-        {name: 'Philippines', code: 'PH'},
+-        {name: 'Pitcairn', code: 'PN'},
+-        {name: 'Poland', code: 'PL'},
+-        {name: 'Portugal', code: 'PT'},
+-        {name: 'Puerto Rico', code: 'PR'},
+-        {name: 'Qatar', code: 'QA'},
+-        {name: 'Reunion', code: 'RE'},
+-        {name: 'Romania', code: 'RO'},
+-        {name: 'Russian Federation', code: 'RU'},
+-        {name: 'Rwanda', code: 'RW'},
+-        {name: 'Saint Helena', code: 'SH'},
+-        {name: 'Saint Kitts and Nevis', code: 'KN'},
+-        {name: 'Saint Lucia', code: 'LC'},
+-        {name: 'Saint Pierre and Miquelon', code: 'PM'},
+-        {name: 'Saint Vincent and the Grenadines', code: 'VC'},
+-        {name: 'Samoa', code: 'WS'},
+-        {name: 'San Marino', code: 'SM'},
+-        {name: 'Sao Tome and Principe', code: 'ST'},
+-        {name: 'Saudi Arabia', code: 'SA'},
+-        {name: 'Senegal', code: 'SN'},
+-        {name: 'Serbia and Montenegro', code: 'CS'},
+-        {name: 'Seychelles', code: 'SC'},
+-        {name: 'Sierra Leone', code: 'SL'},
+-        {name: 'Singapore', code: 'SG'},
+-        {name: 'Slovakia', code: 'SK'},
+-        {name: 'Slovenia', code: 'SI'},
+-        {name: 'Solomon Islands', code: 'SB'},
+-        {name: 'Somalia', code: 'SO'},
+-        {name: 'South Africa', code: 'ZA'},
+-        {name: 'South Georgia and the South Sandwich Islands', code: 'GS'},
+-        {name: 'Spain', code: 'ES'},
+-        {name: 'Sri Lanka', code: 'LK'},
+-        {name: 'Sudan', code: 'SD'},
+-        {name: 'Suriname', code: 'SR'},
+-        {name: 'Svalbard and Jan Mayen', code: 'SJ'},
+-        {name: 'Swaziland', code: 'SZ'},
+-        {name: 'Sweden', code: 'SE'},
+-        {name: 'Switzerland', code: 'CH'},
+-        {name: 'Syrian Arab Republic', code: 'SY'},
+-        {name: 'Taiwan, Province of China', code: 'TW'},
+-        {name: 'Tajikistan', code: 'TJ'},
+-        {name: 'Tanzania, United Republic of', code: 'TZ'},
+-        {name: 'Thailand', code: 'TH'},
+-        {name: 'Timor-Leste', code: 'TL'},
+-        {name: 'Togo', code: 'TG'},
+-        {name: 'Tokelau', code: 'TK'},
+-        {name: 'Tonga', code: 'TO'},
+-        {name: 'Trinidad and Tobago', code: 'TT'},
+-        {name: 'Tunisia', code: 'TN'},
+-        {name: 'Turkey', code: 'TR'},
+-        {name: 'Turkmenistan', code: 'TM'},
+-        {name: 'Turks and Caicos Islands', code: 'TC'},
+-        {name: 'Tuvalu', code: 'TV'},
+-        {name: 'Uganda', code: 'UG'},
+-        {name: 'Ukraine', code: 'UA'},
+-        {name: 'United Arab Emirates', code: 'AE'},
+-        {name: 'United Kingdom', code: 'GB'},
+-        {name: 'United States', code: 'US'},
+-        {name: 'United States Minor Outlying Islands', code: 'UM'},
+-        {name: 'Uruguay', code: 'UY'},
+-        {name: 'Uzbekistan', code: 'UZ'},
+-        {name: 'Vanuatu', code: 'VU'},
+-        {name: 'Venezuela', code: 'VE'},
+-        {name: 'Vietnam', code: 'VN'},
+-        {name: 'Virgin Islands, British', code: 'VG'},
+-        {name: 'Virgin Islands, U.S.', code: 'VI'},
+-        {name: 'Wallis and Futuna', code: 'WF'},
+-        {name: 'Western Sahara', code: 'EH'},
+-        {name: 'Yemen', code: 'YE'},
+-        {name: 'Zambia', code: 'ZM'},
+-        {name: 'Zimbabwe', code: 'ZW'}
+-    ];
+ });
+diff --git a/client/app/main/submittal/submittal.html b/client/app/main/submittal/submittal.html
+index e1b364f..3991362 100644
+--- a/client/app/main/submittal/submittal.html
++++ b/client/app/main/submittal/submittal.html
+@@ -1,9 +1,9 @@
+-<div ng-hide="isSubmittalFormView" ng-init="getProjectInfo()" class="cmtech-tab-content">
++<div ng-hide="isCreatingSubmittal" class="cmtech-tab-content">
+     <div class="row">
+         <div class="col-lg-12">
+             <div class="page-header">
+                 <h4>
+-                    <button type="button" class="btn btn-primary btn-md" ng-click="viewCreateSubmittalForm()">
++                    <button type="button" class="btn btn-primary btn-md" ng-click="createSubmittalView()">
+                         Create New Submittal
+                     </button>
+                     <button type="button" class="btn btn-info btn-md" ng-click="">To Be Submittal Log</button>
+@@ -12,7 +12,7 @@
+         </div>
+     </div>
+     <div class="row">
+-        <button type="button" class="btn btn-default col-lg-2" ng-click="">My Incomplete Items</button>
++        <button type="button" class="btn btn-default col-lg-2" ng-click="">Submittal Log</button>
+         <div class="col-lg-10">
+             Filter submittal view by
+         </div>
+@@ -85,7 +85,7 @@
+         </div>
+     </div>
+     <div class="row">
+-        <button type="button" class="btn btn-default col-lg-2" ng-click="">Submittal Log</button>
++        <button type="button" class="btn btn-default col-lg-2" ng-click="">My Imcomplete Items</button>
+         <div class="col-lg-10">
+             Filter submittal view by
+         </div>
+@@ -146,7 +146,7 @@
+         </div>
+     </div>
+ </div>
+-<div ng-show="isSubmittalFormView" class="cmtech-tab-content">
++<div ng-show="isCreatingSubmittal" class="cmtech-tab-content">
+     <form name="form" ng-submit="createSubmittal(form)">
+         <div class="row">
+             <div class="col-lg-1">
+@@ -157,6 +157,8 @@
+                 <button type="button" class="btn btn-danger col-lg-12" ng-click="deleteCreateSubmittal()">
+                     Delete
+                 </button>
++                <br>
++                <br>
+                 <button type="button" class="btn btn-info col-lg-12" ng-click="leaveCreateSubmittal()">
+                     Back
+                 </button>
+@@ -165,9 +167,9 @@
+                 <div class="row">
+                     <div class="col-lg-12">
+                         <div class="page-header">
+-                            <b ng-bind="projectName">ABC Contractors Inc.</b>
++                            <b>ABC Contractors Inc.</b>
+ 
+-                            <p ng-bind="projectAddress">32W 39th St. New York, NY, 10020</p>
++                            <p>32W 39th St. New York, NY, 10020</p>
+                         </div>
+                     </div>
+                 </div>
+@@ -251,28 +253,7 @@
+                 </div>
+                 <div class="row">
+                     <div class="col-lg-2">
+-                        Issued by:
+-                    </div>
+-                    <div class="col-lg-10">
+-
+-                    </div>
+-                </div>
+-                <div class="row">
+-                    <div class="col-lg-2">
+-                        Approver:
+-                    </div>
+-                    <div class="col-lg-10">
+-                        <p>Selected: {{country.selected}}</p>
+-                        <ui-select ng-model="country.selected" theme="selectize" ng-disabled="disabled"
+-                                   style="width: 300px;">
+-                            <ui-select-match placeholder="Select or search a country in the list...">
+-                                {{$select.selected.name}}
+-                            </ui-select-match>
+-                            <ui-select-choices repeat="country in countries | filter: $select.search">
+-                                <span ng-bind-html="country.name | highlight: $select.search"></span>
+-                                <small ng-bind-html="country.code | highlight: $select.search"></small>
+-                            </ui-select-choices>
+-                        </ui-select>
++                        Issued by Approver:
+                     </div>
+                 </div>
+                 <div class="row">
+diff --git a/client/app/project/project.controller.js b/client/app/project/project.controller.js
+index 3aa71bd..33b1e51 100644
+--- a/client/app/project/project.controller.js
++++ b/client/app/project/project.controller.js
+@@ -1,69 +1,82 @@
+ 'use strict';
+ 
+-angular.module('qiApp').controller('ProjectCtrl', function ($scope, $http, $modal, socket, Auth, $location) {
+-    $scope.user = Auth.getCurrentUser();
+-    $scope.user.$promise.then(function () {
+-        $scope.user.rows = [];
+-        var row = [];
+-        for (var i = 0; i < $scope.user.link_projects.length; i++) {
+-            if (i % 3 === 0) {
+-                if (row.length !== 0) {
+-                    $scope.user.rows.push(row);
+-                    row = [];
++angular.module('qiApp').controller('ProjectCtrl', function ($scope, $http, $modal, socket, Auth) {
++        $scope.user = Auth.getCurrentUser();
++        $scope.user.$promise.then(function () {
++            $scope.user.rows = [];
++            var row = [];
++            for (var i = 0; i < $scope.user.projects.length; i++) {
++                if (i % 3 === 0) {
++                    if (row.length !== 0) {
++                        $scope.user.rows.push(row);
++                        row = [];
++                    }
++                    row.push($scope.user.projects[i]);
++                } else {
++                    row.push($scope.user.projects[i]);
+                 }
+-                row.push($scope.user.link_projects[i]);
+-            } else {
+-                row.push($scope.user.link_projects[i]);
+             }
+-        }
+-        if (row.length !== 0) {
+-            $scope.user.rows.push(row);
+-        }
+-    });
+-
+-    $scope.createProjectModal = function (form) {
+-        var modalInstance = $modal.open({
+-            templateUrl: "/components/modal/modal_createproject.html",
+-            size: "md",
+-            controller: CreateProjectModalCtrl
+-        });
+-        modalInstance.result.then(function (ctrl) {
+-            if (ctrl) {
+-                socket.syncUpdateUser(Auth.getCurrentUser());
+-                console.log("Form Submitted");
++            if (row.length !== 0) {
++                $scope.user.rows.push(row);
+             }
++            console.log($scope.user.rows)
+         });
+-    };
+ 
+-    var CreateProjectModalCtrl = function ($scope, $modalInstance) {
+-        $scope.project = {};
+-        $scope.errors = {};
+-        $scope.selectImage = function () {
+-            filepicker.setKey("Ash9bU3IkR1Cf41AiwTAjz");
+-            filepicker.pick({
+-                mimetypes: ['image/*', 'text/plain'],
+-                container: 'modal',
+-                services: ['COMPUTER']
+-            }, function (Blob) {
+-                $scope.project.blob = Blob;
+-                filepicker.read(Blob, { base64encode: true }, function (imgdata) {
+-                    $scope.$apply(function () {
+-                        $scope.imageSrc = 'data:image/png;base64,' + imgdata;
+-                        console.log("Read successful!");
+-                    });
+-                }, function (fperror) {
+-                    console.log(fperror.toString());
+-                });
+-            }, function (FPError) {
+-                console.log(FPError.toString());
++        $scope.createProjectModal = function (form) {
++            var modalInstance = $modal.open({
++                templateUrl: "/components/modal/modal_createproject.html",
++                size: "md",
++                controller: CreateProjectModalCtrl,
++                resolved: {
++                    $location: function () {
++                        return $location;
++                    },
++                    Auth: function () {
++                        return Auth;
++                    },
++                    socket: function () {
++                        return socket;
++                    }
++
++                }
++            });
++            modalInstance.result.then(function (ctrl) {
++                if (ctrl) {
++                    socket.syncUpdateUser(Auth.getCurrentUser());
++                    console.log("hello", $scope.user.rows)
++                    console.log("modal closed");
++                }
+             });
+         };
+-        $scope.createProject = function (form) {
+-            console.log($scope.form.$error)
+-            $scope.submitted = true;
+-            if (!$scope.project.blob) {
+-                alert("Please upload a photo!");
+-            } else if (form.$valid) {
++
++        var CreateProjectModalCtrl = function ($scope, $modalInstance) {
++            //                console.log(Auth)
++            $scope.project = {};
++            $scope.errors = {};
++            $scope.selectImage = function () {
++                filepicker.setKey("Ash9bU3IkR1Cf41AiwTAjz");
++                filepicker.pick({
++                    mimetypes: ['image/*', 'text/plain'],
++                    container: 'modal',
++                    services: ['COMPUTER']
++                }, function (Blob) {
++                    $scope.project.blob = Blob;
++                    filepicker.read(Blob, { base64encode: true }, function (imgdata) {
++                        $scope.$apply(function () {
++                            $scope.imageSrc = 'data:image/png;base64,' + imgdata;
++                            console.log("Read successful!");
++                        });
++                    }, function (fperror) {
++                        console.log(fperror.toString());
++                    });
++                }, function (FPError) {
++                    console.log(FPError.toString());
++                });
++            };
++            $scope.createProject = function () {
++                console.log($scope.project.blob.url)
++                $scope.submitted = true
++                //            if (form.$valid) {
+                 var data = {
+                     project_name: $scope.project.project_name,
+                     project_number: $scope.project.project_number,
+@@ -76,17 +89,15 @@ angular.module('qiApp').controller('ProjectCtrl', function ($scope, $http, $moda
+                     $modalInstance.close(true);
+                 }).error(function (data) {
+ 
+-                });
+-                $modalInstance.close(true);
+-            } else {
+-                console.log("Form Invalid");
+-            }
+-        };
+ 
+-    };
+-    $scope.cancel = function () {
+-        $modalInstance.close(false);
+-    };
++                });
+ 
+-});
++                //                $modalInstance.close(true);
++                //            }
++            };
++            $scope.cancel = function () {
++                $modalInstance.close(false);
++            }
+ 
++        };
++    });
+diff --git a/client/components/modal/modal_createcompany.html b/client/components/modal/modal_createcompany.html
+deleted file mode 100644
+index 9b5526a..0000000
+--- a/client/components/modal/modal_createcompany.html
++++ /dev/null
+@@ -1,99 +0,0 @@
+-<div class="modal-header">
+-    <h3 class="modal-title">Add a New Company</h3>
+-</div>
+-<div class="modal-body">
+-    <form class="form" name="form" ng-submit="createCompany(form)" novalidate>
+-        <div class="row">
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyName.$valid && submitted,
+-                                                    'has-error': form.companyName.$invalid && submitted }">
+-                    <input type="text" ng-model="company.company_name" class="form-control" name="companyName"
+-                           placeholder="Company Name" required />
+-
+-                    <p class="help-block" ng-show="form.companyName.$error.required && submitted">
+-                        Company name is required
+-                    </p>
+-                </div>
+-            </div>
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyRole.$valid && submitted,
+-                                                    'has-error': form.companyRole.$invalid && submitted }">
+-                    <select ng-options="item for item in companyRoles" ng-model="company.company_role" required></select>
+-
+-                    <p class="help-block" ng-show="form.companyRole.$error.required && submitted">
+-                        Company role is required
+-                    </p>
+-                </div>
+-            </div>
+-        </div>
+-        <div class="row">
+-            <div class="col-lg-12">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyAddress.$valid && submitted,
+-                                                    'has-error': form.companyAddress.$invalid && submitted }">
+-                    <input type="text" ng-model="company.company_address" class="form-control" name="companyAddress"
+-                           placeholder="Address"
+-                           required />
+-
+-                    <p class="help-block" ng-show="form.companyAddress.required && submitted">
+-                        Company address is required
+-                    </p>
+-                </div>
+-            </div>
+-        </div>
+-        <div class="row">
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyCity.$valid && submitted,
+-                                                    'has-error': form.companyCity.$invalid && submitted }">
+-                    <input type="text" ng-model="company.company_city" class="form-control" name="companyCity" placeholder="City"
+-                           required />
+-
+-                    <p class="help-block" ng-show="form.companyCity.$error.required && submitted">
+-                        Company city is required
+-                    </p>
+-                </div>
+-            </div>
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyState.$valid && submitted,
+-                                                    'has-error': form.companyState.$invalid && submitted }">
+-                    <input type="text" ng-model="company.company_state" class="form-control" name="companyState"
+-                           placeholder="State"
+-                           required />
+-
+-                    <p class="help-block" ng-show="form.companyState.$error.required && submitted">
+-                        Company state is required
+-                    </p>
+-                </div>
+-            </div>
+-        </div>
+-        <div class="row">
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyZip.$valid && submitted,
+-                                                    'has-error': form.companyZip.$invalid && submitted }">
+-                    <input type="text" ng-model="company.company_zip" class="form-control" name="companyZip"
+-                           placeholder="Zip" required />
+-
+-                    <p class="help-block" ng-show="form.companyZip.$error.required && submitted">
+-                        Company zipcode is required
+-                    </p>
+-                </div>
+-            </div>
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': form.companyPhone.$valid && submitted,
+-                                                    'has-error': form.companyPhone.$invalid && submitted }">
+-                    <input type="text" ng-model="company.company_phone" class="form-control" name="companyPhone"
+-                           placeholder="Zip" required />
+-
+-                    <p class="help-block" ng-show="form.companyPhone.$error.required && submitted">
+-                        Phone is required
+-                    </p>
+-                </div>
+-            </div>
+-
+-        </div>
+-        <div class="modal-footer">
+-            <button type="submit" class="btn btn-primary">Upload</button>
+-            <button type="button" class="btn btn-warning" ng-click="cancel()">Back</button>
+-        </div>
+-    </form>
+-</div>
+-
+diff --git a/client/components/modal/modal_createproject.html b/client/components/modal/modal_createproject.html
+index 74affc4..639abb0 100644
+--- a/client/components/modal/modal_createproject.html
++++ b/client/components/modal/modal_createproject.html
+@@ -4,33 +4,29 @@
+ <div class="modal-body">
+     <form class="form" name="form" ng-submit="createProject(form)" novalidate>
+         <div class="row">
+-            <div class="col-lg-6">
++            <div class="col-md-6">
+                 <div class="form-group" ng-class="{ 'has-success': form.projectName.$valid && submitted,
+                                                     'has-error': form.projectName.$invalid && submitted }">
+                     <input type="text" ng-model="project.project_name" class="form-control" name="projectName"
+                            placeholder="Project Name" required />
+-
+-                    <p class="help-block" ng-show="form.projectName.$error.required && submitted">
+-                        Project name is required
+-                    </p>
++                    <span class="help-block" ng-show="form.projectName.$error.required && submitted">
++                        project name is required
++                    </span>
+                 </div>
+             </div>
+-            <div class="col-lg-6">
++            <div class="col-md-6">
+                 <div class="form-group" ng-class="{ 'has-success': form.porjectNumber.$valid && submitted,
+                                                     'has-error': form.porjectNumber.$invalid && submitted }">
+                     <input type="text" ng-model="project.project_number" class="form-control" name="porjectNumber"
+                            placeholder="Project #" required />
+-
+-                    <p class="help-block" ng-show="form.porjectNumber.$error.required && submitted">
+-                        Project number is required
+-                    </p>
++                    <span class="help-block" ng-show="form.porjectNumber.$error.required && submitted">
++                        project number is required
++                    </span>
+                 </div>
+             </div>
+ 
+         </div>
+-        <div class="row">
+-            <div class="col-lg-12">
+-                <div class="form-group" ng-class="{ 'has-success': form.projectAddress.$valid && submitted,
++        <div class="form-group" ng-class="{ 'has-success': form.projectAddress.$valid && submitted,
+                                             'has-error': form.projectAddress.$invalid && submitted }">
+             <input type="text" ng-model="project.project_address" class="form-control" name="projectAddress" placeholder="Address"
+                    required />
+@@ -46,35 +42,33 @@
+             </span>
+         </div>
+         <div class="row">
+-            <div class="col-lg-6">
++            <div class="col-md-6">
+                 <div class="form-group" ng-class="{ 'has-success': form.projectZipcode.$valid && submitted,
+                                                     'has-error': form.projectZipcode.$invalid && submitted }">
+                     <input type="text" ng-model="project.project_zip" class="form-control" name="projectZipcode"
+                            placeholder="Zip" required />
+-
+-                    <p class="help-block" ng-show="form.projectZipcode.$error.required && submitted">
+-                        Project zipcode is required
+-                    </p>
++                    <span class="help-block" ng-show="form.projectZipcode.$error.required && submitted">
++                        project zipcode is required
++                    </span>
+                 </div>
+             </div>
+-            <div class="col-lg-6">
+-                <div class="form-group" ng-class="{ 'has-success': imageSrc && submitted,
+-                                                    'has-error': !imageSrc && submitted }">
+-                    <input type="button" class="form-control" id="uploadPhoto" name="uploadPhoto"
++            <div class="col-md-6">
++                <div class="form-group" ng-class="{ 'has-success': form.uploadPhoto.$valid && submitted,
++                                                    'has-error': form.uploadPhoto.$invalid && submitted }">
++                    <input type="button" ng-model="project.uploadPhoto" class="form-control" id="uploadPhoto" name="uploadPhoto"
+                            value="Upload Photo"
+                            ng-click="selectImage()" />
+-
+-                    <p class="help-block" ng-show="!imageSrc && submitted">
++                    <span class="help-block" ng-show="imageSrc && submitted">
+                         Profile Picture is required
+-                    </p>
++                    </span>
+                     <i ng-hide="imageSrc || submitted">No image chosen</i>
+-                    <img style='width:200px' ng-src="{{ imageSrc }}" id='up' />
++                    <img style='width:200px' ng-src="{{ imageSrc }}" id='up' /><br />
+                 </div>
+             </div>
+         </div>
+         <div class="modal-footer">
+             <button type="submit" class="btn btn-primary">Upload</button>
+-            <button type="button" class="btn btn-warning" ng-click="cancel()">Back</button>
++            <button class="btn btn-warning" ng-click="cancel()">Back</button>
+         </div>
+     </form>
+ </div>
+diff --git a/client/components/modal/modal_login.html b/client/components/modal/modal_login.html
+index 3186277..6758d26 100644
+--- a/client/components/modal/modal_login.html
++++ b/client/components/modal/modal_login.html
+@@ -23,7 +23,7 @@
+         </div>
+         <div class="modal-footer">
+             <button type="submit" class="btn btn-primary">Login</button>
+-            <button type="button" class="btn btn-warning" ng-click="cancel()">Back</button>
++            <button class="btn btn-warning" ng-click="cancel()">Back</button>
+         </div>
+     </form>
+ </div>
+diff --git a/client/components/modal/modal_signup.html b/client/components/modal/modal_signup.html
+index 903fc75..bb5e8e0 100644
+--- a/client/components/modal/modal_signup.html
++++ b/client/components/modal/modal_signup.html
+@@ -40,94 +40,64 @@
+                 {{ errors.user_email }}
+             </span>
+         </div>
+-        <div class="row">
+-            <div class="col-lg-12">
+-                <div class="form-group" ng-class="{ 'has-success': form.password.$valid && submitted,
+-                                                    'has-error': form.password.$invalid && submitted }">
+-                    <input type="password" ng-model="user.password" class="form-control" id="password"
+-                           name="password" placeholder="Password" ng-minlength="3" required mongoose-error />
+-                    <p class="help-block" ng-show="form.password.$error.required && submitted">
+-                        Password is required
+-                    </p>
+-                    <p class="help-block" ng-show="form.password.$error.minlength && submitted">
+-                        Password must be at least 3 characters.
+-                    </p>
+-                    <p class="help-block" ng-show="form.password.$error.mongoose">
+-                        {{ errors.password }}
+-                    </p>
+-                </div>
+-            </div>
++        <div class="form-group" ng-class="{ 'has-success': form.password.$valid && submitted,
++                                            'has-error': form.password.$invalid && submitted }">
++            <input type="password" ng-model="user.password" class="form-control" id="password"
++                   name="password" placeholder="Password" ng-minlength="3" required mongoose-error />
++            <span class="help-block" ng-show="form.password.$error.required && submitted">
++                password is required
++            </span>
++            <span class="help-block" ng-show="form.password.$error.minlength && submitted">
++                password must be at least 3 characters.
++            </span>
++            <span class="help-block" ng-show="form.password.$error.mongoose">
++                {{ errors.password }}
++            </span>
+         </div>
+-        <div class="row">
+-            <div class="col-lg-12">
+-                <div class="form-group" ng-class="{ 'has-success': form.confirmPassword.$valid && submitted,
+-                                                    'has-error': form.confirmPassword.$invalid && submitted }">
+-                    <input type="password" ng-model="user.confirmPassword" class="form-control" id="confirmPassword"
+-                           name="confirmPassword" placeholder="Confirm Password" ng-minlength="3" required mongoose-error />
+-                    <p class="help-block" ng-show="form.confirmPassword.$error.required && submitted">
+-                        Confirm password is required
+-                    </p>
+-                    <p class="help-block"
+-                          ng-show="form.confirmPassword.$error.minlength && submitted">
+-                        Password must be at least 3 characters.
+-                    </p>
+-                    <p class="help-block" ng-show="form.password.$error.mongoose">
+-                        {{ errors.password }}
+-                    </p>
+-                </div>
+-            </div>
++        <div class="form-group" ng-class="{ 'has-success': form.confirmPassword.$valid && submitted,
++                                            'has-error': form.confirmPassword.$invalid && submitted }">
++            <input type="password" ng-model="user.confirmPassword" class="form-control" id="confirmPassword"
++                   name="confirmPassword" placeholder="Confirm Password" ng-minlength="3" required mongoose-error />
++            <span class="help-block" ng-show="form.confirmPassword.$error.required && submitted">
++                confirm password is required
++            </span>
++            <span class="help-block"
++                  ng-show="form.confirmPassword.$error.minlength && submitted">
++                Password must be at least 3 characters.
++            </span>
++            <span class="help-block" ng-show="form.password.$error.mongoose">
++                {{ errors.password }}
++            </span>
+         </div>
++
+         <div class="row">
+-            <div class="col-lg-6">
++            <div class="col-md-6">
+                 <div class="form-group" ng-class="{ 'has-success': form.phoneNumber.$valid && submitted,
+                                                     'has-error': form.phoneNumber.$invalid && submitted }">
+                     <input type="text" ng-model="user.user_phone" class="form-control" id="phoneNumber" name="phoneNumber"
+                            placeholder="Phone" required />
+-                    <p class="help-block" ng-show="form.phoneNumber.$error.required && submitted">
+-                        Phone number is required
+-                    </p>
++                    <span class="help-block" ng-show="form.phoneNumber.$error.required && submitted">
++                        phone number is required
++                    </span>
+                 </div>
+             </div>
+-            <div class="col-lg-6">
++            <div class="col-md-6">
+                 <div class="form-group" ng-class="{ 'has-success': imageSrc && submitted,
+                                                     'has-error': !imageSrc && submitted }">
+-                    <input type="button"  class="form-control" id="uploadPhoto" name="uploadPhoto"
++                    <input type="button" ng-model="user.uploadPhoto" class="form-control" id="uploadPhoto" name="uploadPhoto"
+                            value="Upload Photo"
+                            ng-click="selectImage()" />
+-                    <p class="help-block" ng-show="!imageSrc && submitted">
++                    <span class="help-block" ng-show="!imageSrc && submitted">
+                         Profile Picture is required
+-                    </p>
++                    </span>
+                     <i ng-hide="imageSrc || submitted">No image chosen</i>
+-                    <!--<img style='width:200px' ng-src="{{ imageSrc }}" id='up' />-->
++                    <img style='width:200px' ng-src="{{ imageSrc }}" id='up' /><br />
+                 </div>
+             </div>
+         </div>
+-        <div class="row">
+-            <div class="col-lg-7">
+-                <label>Please select predefined company here</label>
+-                <div class="form-group" ng-class="{ 'has-success': form.uploadPhoto.$valid && submitted,
+-                                                    'has-error': form.uploadPhoto.$invalid && submitted }">
+-                    <ui-select ng-model="company.selected" theme="selectize" ng-disabled="disabled"
+-                               style="width: 300px;">
+-                        <ui-select-match placeholder="Select or search a company in the list...">
+-                            {{$select.selected.name}}
+-                        </ui-select-match>
+-                        <ui-select-choices repeat="company in $parent.companies | filter: $select.search">
+-                            <span ng-bind-html="company.company_name | highlight: $select.search"></span>
+-                            <small ng-bind-html="company.company_role | highlight: $select.search"></small>
+-                        </ui-select-choices>
+-                    </ui-select>
+-                    <p>Selected: {{company.selected}}</p>
+-                </div>
+-            </div>
+-            <div class="col-lg-5">
+-                <label>Didn't find your company</label>
+-                <button ng-click="createCompanyModal()" type="button" class="btn btn-primary">Create New Company</button>
+-            </div>
+-        </div>
+         <div class="modal-footer">
+             <button type="submit" class="btn btn-primary">Sign Up</button>
+-            <button type="button" class="btn btn-warning" ng-click="cancel()">Back</button>
++            <button class="btn btn-warning" ng-click="cancel()">Back</button>
+         </div>
+     </form>
+ </div>
+diff --git a/client/components/navbar/navbar_project.html b/client/components/navbar/navbar_project.html
+index d04a630..cc25edd 100644
+--- a/client/components/navbar/navbar_project.html
++++ b/client/components/navbar/navbar_project.html
+@@ -28,7 +28,7 @@
+                     Project List<span class="caret"></span>
+                 </button>
+                 <ul class="dropdown-menu" role="menu">
+-                    <li ng-repeat="item in getCurrentUser().link_projects track by item._id">
++                    <li ng-repeat="item in getCurrentUser().projects track by item._id">
+                         <a ng-bind="item.project_name" ui-sref="main.home({projectID : item._id})"></a>
+                     </li>
+                 </ul>
+diff --git a/client/components/socket/socket.service.js b/client/components/socket/socket.service.js
+index 2069b12..6573eaa 100644
+--- a/client/components/socket/socket.service.js
++++ b/client/components/socket/socket.service.js
+@@ -21,16 +21,16 @@ angular.module('qiApp')
+         var split = function(number) {
+              var rows = [];
+              var row = [];
+-             for(var i =0 ; i < user.link_projects.length ; i++ ) {
++             for(var i =0 ; i < user.projects.length ; i++ ) {
+                  if(i%number === 0) {
+                      if(row.length !==0) {
+                          rows.push(row);
+                          row = [];
+                      }
+-                     row.push(user.link_projects[i]);
++                     row.push(user.projects[i]);
+                  }
+                  else {
+-                      row.push(user.link_projects[i]);
++                      row.push(user.projects[i]);
+                  }
+              }
+              if(row.length !== 0) {
+@@ -40,7 +40,7 @@ angular.module('qiApp')
+          };
+           socket.on('user:save',function(item){
+               if(user._id.toString() === item._id.toString()) {
+-                user.link_projects = item.link_projects
++                user.projects = item.projects
+                 user.rows = split(3, user);
+               }
+           });
+diff --git a/client/index.html b/client/index.html
+index fa82872..2e76985 100644
+--- a/client/index.html
++++ b/client/index.html
+@@ -15,10 +15,8 @@
+       <!-- bower:css -->
+       <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+       <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
+-      <link rel="stylesheet" href="bower_components/angular-ui-select/dist/select.css" />
+       <!-- endbower -->
+     <!-- endbuild -->
+-    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/css/selectize.default.css">
+     <!-- build:css({.tmp,client}) app/app.css -->
+     <link rel="stylesheet" href="app/app.css">
+       <!-- injector:css -->
+@@ -74,12 +72,11 @@
+       <script src="bower_components/lodash/dist/lodash.compat.js"></script>
+       <script src="bower_components/angular-socket-io/socket.js"></script>
+       <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+-      <script src="bower_components/angular-ui-select/dist/select.js"></script>
+       <!-- endbower -->
+       <script src="socket.io-client/socket.io.js"></script>
+     <!-- endbuild -->
+-    <script type="text/javascript" src="//api.filepicker.io/v1/filepicker.js"></script>
+-    <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
++      <script type="text/javascript" src="//api.filepicker.io/v1/filepicker.js"></script>
++      <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+         <!-- build:js({.tmp,client}) app/app.js -->
+         <script src="app/app.js"></script>
+           <!-- injector:js -->
+diff --git a/server/api/company/company.controller.js b/server/api/company/company.controller.js
+index 05a5513..670c346 100644
+--- a/server/api/company/company.controller.js
++++ b/server/api/company/company.controller.js
+@@ -3,6 +3,7 @@
+ var _ = require('lodash');
+ var Company = require('./company.model');
+ 
++
+ // Get list of companys
+ exports.index = function(req, res) {
+   Company.find(function (err, companys) {
+@@ -11,8 +12,8 @@ exports.index = function(req, res) {
+   });
+ };
+ 
+-exports.show_roles = function(req,res) {
+-  return res.json(Company.schema.path('company_role').enumValues);
++exports.role = function(req,res) {
++  return res.json(Company.schema.path('role').enumValues);
+ };
+ 
+ // Get a single company
+diff --git a/server/api/company/company.model.js b/server/api/company/company.model.js
+index 4ba44e7..578a624 100644
+--- a/server/api/company/company.model.js
++++ b/server/api/company/company.model.js
+@@ -1,16 +1,17 @@
+ 'use strict';
+ 
+-var mongoose = require('mongoose'), Schema = mongoose.Schema;
++var mongoose = require('mongoose'),
++    Schema = mongoose.Schema;
+ 
+ var CompanySchema = new Schema({
+-    company_name: String,
+-    company_address: String,
+-    company_contact: String,
+-    company_state: String,
+-    company_zip: String,
+-    company_city: String,
+-    company_phone: String,
+-    company_role: {type: String, enum: ['Contruction Manager', 'Contructor', 'Engineer', 'Owner']}
++  company_name: String,
++  company_address: String,
++  company_contact: String,
++  company_state: String,
++  company_zip : String,
++  company_city : String,
++  company_phone: String,
++  role:{type: String, enum: ['Contruction Manager', 'Contructor', 'Engineer', 'Owner']}
+ });
+ 
+ module.exports = mongoose.model('Company', CompanySchema);
+\ No newline at end of file
+diff --git a/server/api/company/index.js b/server/api/company/index.js
+index c63684e..61f141e 100644
+--- a/server/api/company/index.js
++++ b/server/api/company/index.js
+@@ -3,7 +3,6 @@
+ var express = require('express');
+ var controller = require('./company.controller');
+ var auth = require('../../auth/auth.service');
+-
+ var router = express.Router();
+ 
+ router.get('/', controller.index);
+@@ -12,6 +11,5 @@ router.post('/', auth.isAuthenticated(), controller.create);
+ router.put('/:id', controller.update);
+ router.patch('/:id', controller.update);
+ router.delete('/:id', controller.destroy);
+-router.get('/roles/info',auth.isAuthenticated(), controller.show_roles);
+-
++router.get('/show/roles',auth.isAuthenticated(), controller.role);
+ module.exports = router;
+\ No newline at end of file
+diff --git a/server/api/project/index.js b/server/api/project/index.js
+index 4aecfc5..2edc0a9 100644
+--- a/server/api/project/index.js
++++ b/server/api/project/index.js
+@@ -4,6 +4,7 @@ var express = require('express');
+ var controller = require('./project.controller');
+ var auth = require('../../auth/auth.service');
+ 
++
+ var router = express.Router();
+ 
+ router.get('/', controller.index);
+diff --git a/server/api/project/project.controller.js b/server/api/project/project.controller.js
+index 63e1916..0f521e6 100644
+--- a/server/api/project/project.controller.js
++++ b/server/api/project/project.controller.js
+@@ -15,7 +15,7 @@ exports.index = function(req, res) {
+ 
+ // Get a single project
+ exports.show = function(req, res) {
+-  Project.findById(req.params.id).populate('link_submittals').exec(function(err, project) {
++  Project.findById(req.params.id).populate('submittals').exec(function(err, project) {
+     if(err) { return handleError(res, err); }
+     if(!project) { return res.send(404); }
+     return res.json(project);
+@@ -32,7 +32,7 @@ exports.create = function(req, res) {
+          console.log(err , user)
+        if (err) return next(err);
+        if (!user) return res.send(401);
+-        user.link_projects.push(project._id);
++        user.projects.push(project._id);
+         project.save(function(err) {
+            user.save(function(err) {
+                return res.json(200, project);
+diff --git a/server/api/project/project.model.js b/server/api/project/project.model.js
+index 2bda73f..cdd1dee 100644
+--- a/server/api/project/project.model.js
++++ b/server/api/project/project.model.js
+@@ -12,9 +12,9 @@ var ProjectSchema = new Schema({
+   project_name: String,
+   project_files: [String],
+   project_image_url : String,
+-  link_submittal: {
++  submittals :[{
+   	type: Schema.Types.ObjectId, ref: 'Submittal' 
+-  }
++  }]
+ });
+ 
+ module.exports = mongoose.model('Project', ProjectSchema);
+\ No newline at end of file
+diff --git a/server/api/submittal/submittal.model.js b/server/api/submittal/submittal.model.js
+index b94db77..55fae1c 100644
+--- a/server/api/submittal/submittal.model.js
++++ b/server/api/submittal/submittal.model.js
+@@ -1,35 +1,31 @@
+ 'use strict';
+ 
+-var mongoose = require('mongoose'), Schema = mongoose.Schema;
++var mongoose = require('mongoose'),
++    Schema = mongoose.Schema;
+ 
+ var SubmittalSchema = new Schema({
+-    link_project: {
+-        type: Schema.Types.ObjectId, ref: 'User'
+-    },
+-    submittal_name: String,
+-    submittal_info: String,
+-    submittal_title: String,
+-    submittal_spec_section: String,
+-    submittal_number: Number,
+-    submittal_revision: Number,
+-    submittal_type: String,
+-    submittal_issue_date: Date,
+-    submittal_due_date: Date,
+-    submittal_response_date: Date,
+-    submittal_tag: String,
+-    submittal_issued_by: {
+-        type: Schema.Types.ObjectId, ref: 'User'
+-    },
+-    submittal_approver: {
+-        type: Schema.Types.ObjectId, ref: 'User'
+-    },
+-    submittal_distributions: [
+-        {
+-            type: Schema.Types.ObjectId, ref: 'User'
+-        }
+-    ],
+-    submittal_description: String,
+-    submittal_attachments: [String]
++  name: String,
++  info: String,
++  title: String,
++  spec_section: String,
++  number: Number,
++  revision: Number,
++  type: String,
++  issue_date: Date,
++  due_date: Date,
++  response_date: Date,
++  tag: String,
++  issued_by: {
++  	type: Schema.Types.ObjectId, ref: 'User' 
++  },
++  aprrover : {
++  	type: Schema.Types.ObjectId, ref: 'User' 
++  },
++  distribution : [{
++  	type: Schema.Types.ObjectId, ref: 'User' 
++  }],
++  description : String,
++  attachments : [String]
+ });
+ 
+ module.exports = mongoose.model('Submittal', SubmittalSchema);
+\ No newline at end of file
+diff --git a/server/api/user/user.controller.js b/server/api/user/user.controller.js
+index 698c01e..22da36b 100644
+--- a/server/api/user/user.controller.js
++++ b/server/api/user/user.controller.js
+@@ -89,7 +89,7 @@ exports.me = function(req, res, next) {
+   }, '-salt -hashedPassword', function(err, user) { // don't ever give out the password or salt
+     if (err) return next(err);
+     if (!user) return res.json(401);
+-    user.populate({path:'link_projects',select:'-files'},function(err,user){
++    user.populate({path:'projects',select:'-files'},function(err,user){
+        res.json(user);
+     });
+   });
+diff --git a/server/api/user/user.model.js b/server/api/user/user.model.js
+index d46bb04..50c5c5d 100644
+--- a/server/api/user/user.model.js
++++ b/server/api/user/user.model.js
+@@ -16,7 +16,7 @@ var UserSchema = new Schema({
+   provider: String,
+   salt: String,
+   user_phone: String,
+-  link_projects: [{
++  projects: [{
+     type : Schema.Types.ObjectId,
+     ref : 'Project'
+   }],
+diff --git a/server/routes.js b/server/routes.js
+index dae1cd9..de6e8a0 100644
+--- a/server/routes.js
++++ b/server/routes.js
+@@ -9,7 +9,7 @@ var errors = require('./components/errors');
+ module.exports = function(app) {
+ 
+   // Insert routes below
+-  app.use('/api/companies', require('./api/company'));
++  app.use('/api/companys', require('./api/company'));
+   app.use('/api/submittals', require('./api/submittal'));
+   app.use('/api/projects', require('./api/project'));
+   app.use('/api/things', require('./api/thing'));

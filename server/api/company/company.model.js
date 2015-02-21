@@ -5,9 +5,11 @@ var mongoose = require('mongoose'),
 
 var CompanySchema = new Schema({
   company_name: String,
-  company_info: String,
   company_address: String,
   company_contact: String,
+  company_state: String,
+  company_zip : String,
+  company_city : String,
   company_phone: String,
   role:{type: String, enum: ['Contruction Manager', 'Contructor', 'Engineer', 'Owner']}
 });

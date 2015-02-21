@@ -2,25 +2,22 @@
 
 angular.module('qiApp').controller('ProjectCtrl', function ($scope, $http, $modal, socket, Auth) {
         $scope.user = Auth.getCurrentUser();
-        $scope.user.$promise.then(function () {
-            $scope.user.rows = [];
-            var row = [];
-            for (var i = 0; i < $scope.user.projects.length; i++) {
-                if (i % 3 === 0) {
-                    if (row.length !== 0) {
-                        $scope.user.rows.push(row);
-                        row = [];
-                    }
-                    row.push($scope.user.projects[i]);
-                } else {
-                    row.push($scope.user.projects[i]);
+        $scope.user.rows = [];
+        var row = [];
+        for (var i = 0; i < $scope.user.projects.length; i++) {
+            if (i % 3 === 0) {
+                if (row.length !== 0) {
+                    $scope.user.rows.push(row);
+                    row = [];
                 }
+                row.push($scope.user.projects[i]);
+            } else {
+                row.push($scope.user.projects[i]);
             }
-            if (row.length !== 0) {
-                $scope.user.rows.push(row);
-            }
-            console.log($scope.user.rows)
-        });
+        }
+        if (row.length !== 0) {
+            $scope.user.rows.push(row);
+        }
 
         $scope.createProjectModal = function (form) {
             var modalInstance = $modal.open({
